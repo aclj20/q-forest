@@ -1,0 +1,11 @@
+Node Index Mapping:
+===================
+Index 0: Node (0, 0) -> Grid position (0, 0)
+Index 1: Node (0, 1) -> Grid position (0, 1)
+Index 2: Node (0, 2) -> Grid position (0, 2)
+Index 3: Node (1, 0) -> Grid position (1, 0)
+Index 4: Node (1, 1) -> Grid position (1, 1)
+Index 5: Node (1, 2) -> Grid position (1, 2)
+Index 6: Node (2, 0) -> Grid position (2, 0)
+Index 7: Node (2, 1) -> Grid position (2, 1)
+Index 8: Node (2, 2) -> Grid position (2, 2)
