@@ -1,5 +1,8 @@
 # Q-FOREST
 
+python 3.9.23 
+
+pip install -r requirements.txt
 **Quantum-inspired Forest Optimization & Resource Evaluation System**
 
 A Python-based API for transforming spatial heatmap images into weighted graph networks, enabling advanced optimization algorithms for resource allocation and spatial analysis.
