@@ -113,8 +113,8 @@ class HeatmapToGraph:
                 peso_normalizado = self._calculate_color_diversity_weight(
                     color_region, gray_region)
 
-                # GENERAR COSTO ALEATORIO para cada nodo (entre 0 y 1)
-                costo_aleatorio = np.random.random()  # Valor aleatorio entre 0 y 1
+                # GENERAR COSTO ALEATORIO para cada nodo (entre 30 y 100)
+                costo_aleatorio = np.random.uniform(30, 100)  # Valor aleatorio entre 30 y 100
 
                 # Información del nodo
                 node_info = {
@@ -133,7 +133,7 @@ class HeatmapToGraph:
 
         print(f"Creados {len(self.nodes)} nodos en grilla {rows}x{cols}")
         print("BENEFICIOS: Basados en colores específicos del heatmap (PINK/MAGENTA y VERDE)")
-        print("COSTOS: Generados aleatoriamente entre 0 y 1 para cada nodo")
+        print("COSTOS: Generados aleatoriamente entre 30 y 100 para cada nodo")
         return self.nodes
 
     def _calculate_color_diversity_weight(self, color_region: np.ndarray,
@@ -354,12 +354,12 @@ class HeatmapToGraph:
         ax.set_ylim(img_height, 0)  # Invertir eje Y para coincidir
         ax.axis('off')
 
-        # Agregar colorbar para referencia de pesos
-        sm = plt.cm.ScalarMappable(cmap='hot',
-                                   norm=plt.Normalize(vmin=0, vmax=1))
-        sm.set_array([])
-        cbar = plt.colorbar(sm, ax=ax, shrink=0.8)
-        cbar.set_label('Peso Normalizado', rotation=270, labelpad=15)
+        # Colorbar removed to keep visualization clean
+        # sm = plt.cm.ScalarMappable(cmap='hot',
+        #                            norm=plt.Normalize(vmin=0, vmax=1))
+        # sm.set_array([])
+        # cbar = plt.colorbar(sm, ax=ax, shrink=0.8)
+        # cbar.set_label('Peso Normalizado', rotation=270, labelpad=15)
 
         plt.tight_layout()
 

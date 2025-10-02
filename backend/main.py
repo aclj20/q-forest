@@ -10,9 +10,11 @@ from pathlib import Path
 import uuid
 from typing import List
 
-# Add preprocessing directory to path
+# Add preprocessing and postprocessing directories to path
 sys.path.append(str(Path(__file__).parent.parent / "preprocessing"))
+sys.path.append(str(Path(__file__).parent.parent / "postprocessing"))
 from image_to_graph import HeatmapToGraph
+from highlight_nodes import NodeHighlighter
 
 app = FastAPI(title="Q-FOREST API", version="1.0.0")
 
@@ -167,6 +169,126 @@ async def get_node_options():
             for n in perfect_squares
         ]
     }
+
+
+@app.post("/highlight")
+async def highlight_nodes(
+    file: UploadFile = File(...),
+    selection_matrix: UploadFile = File(...),
+    nodes: int = Form(...)
+):
+    """
+    Highlight selected nodes on heatmap visualization based on binary selection matrix
+    
+    Parameters:
+    - file: Original heatmap image (PNG, JPG, JPEG)
+    - selection_matrix: CSV file with binary matrix (1=selected, 0=not selected)
+    - nodes: Number of nodes (must be perfect square: 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144)
+    
+    Returns:
+    - JSON with highlighted visualization URL and statistics
+    """
+    # Validate node count is a perfect square
+    sqrt_nodes = int(np.sqrt(nodes))
+    if sqrt_nodes * sqrt_nodes != nodes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{nodes} is not a perfect square. Valid values: 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144"
+        )
+    
+    # Generate unique ID for this job
+    job_id = str(uuid.uuid4())
+    
+    try:
+        # Save uploaded image
+        image_path = UPLOAD_DIR / f"{job_id}_{file.filename}"
+        with image_path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Save uploaded selection matrix
+        matrix_path = UPLOAD_DIR / f"{job_id}_selection.csv"
+        with matrix_path.open("wb") as buffer:
+            shutil.copyfileobj(selection_matrix.file, buffer)
+        
+        # Load and validate selection matrix
+        try:
+            sel_matrix = np.loadtxt(matrix_path, delimiter=',')
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid selection matrix format: {str(e)}. Must be CSV with comma-separated values."
+            )
+        
+        # Validate matrix shape
+        if sel_matrix.shape != (sqrt_nodes, sqrt_nodes):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Selection matrix shape {sel_matrix.shape} must match grid size ({sqrt_nodes}x{sqrt_nodes})"
+            )
+        
+        # Validate matrix contains only 0s and 1s
+        if not np.all(np.isin(sel_matrix, [0, 1])):
+            raise HTTPException(
+                status_code=400,
+                detail="Selection matrix must contain only 0s and 1s"
+            )
+        
+        # Create output directory
+        result_dir = RESULTS_DIR / job_id
+        result_dir.mkdir(exist_ok=True)
+        
+        # Generate output path
+        base_name = f"{job_id}_{nodes}nodes"
+        output_path = result_dir / f"{base_name}_highlighted.png"
+        
+        # Create highlighter and process
+        grid_size = (sqrt_nodes, sqrt_nodes)
+        highlighter = NodeHighlighter(str(image_path), grid_size)
+        highlighter.load_and_process()
+        
+        # Highlight selected nodes
+        import matplotlib
+        matplotlib.use('Agg')  # Use non-interactive backend
+        highlighter.highlight_selected_nodes(
+            selection_matrix=sel_matrix,
+            output_path=str(output_path),
+            highlight_color=(255, 215, 0),  # Gold
+            highlight_size=300
+        )
+        
+        # Clean up matplotlib
+        import matplotlib.pyplot as plt
+        plt.close('all')
+        
+        # Count selected nodes
+        selected_count = int(np.sum(sel_matrix))
+        total_nodes = nodes
+        
+        # Return results
+        return JSONResponse(content={
+            "success": True,
+            "job_id": job_id,
+            "nodes": nodes,
+            "grid_size": f"{sqrt_nodes}x{sqrt_nodes}",
+            "selected_nodes": selected_count,
+            "total_nodes": total_nodes,
+            "selection_percentage": round((selected_count / total_nodes) * 100, 2),
+            "file": {
+                "highlighted_visualization": f"/results/{job_id}/{base_name}_highlighted.png"
+            }
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error highlighting nodes: {str(e)}")
+    
+    finally:
+        # Clean up uploaded files
+        if image_path.exists():
+            image_path.unlink()
+        if matrix_path.exists():
+            matrix_path.unlink()
 
 
 if __name__ == "__main__":

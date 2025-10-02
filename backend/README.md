@@ -69,6 +69,32 @@ Response:
 }
 ```
 
+### Highlight Selected Nodes
+
+```bash
+POST /highlight
+Content-Type: multipart/form-data
+
+Parameters:
+  - file: image file (PNG, JPG, JPEG)
+  - selection_matrix: CSV file with binary matrix (1=selected, 0=not)
+  - nodes: integer (4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144)
+
+Response:
+{
+  "success": true,
+  "job_id": "uuid",
+  "nodes": 9,
+  "grid_size": "3x3",
+  "selected_nodes": 5,
+  "total_nodes": 9,
+  "selection_percentage": 55.56,
+  "file": {
+    "highlighted_visualization": "/results/{job_id}/{name}_highlighted.png"
+  }
+}
+```
+
 ### Download File
 
 ```bash
@@ -134,9 +160,15 @@ allow_origins=["https://your-frontend-domain.com"]
 # Health check
 curl http://localhost:8000/health
 
-# Process image
+# Process image (generates node graph)
 curl -X POST http://localhost:8000/process \
   -F "file=@test_image.png" \
+  -F "nodes=9"
+
+# Highlight selected nodes
+curl -X POST http://localhost:8000/highlight \
+  -F "file=@test_image.png" \
+  -F "selection_matrix=@selection.csv" \
   -F "nodes=9"
 
 # Get node options
@@ -233,4 +265,28 @@ logger = logging.getLogger(__name__)
 ## 📄 License
 
 MIT License
+
+---
+
+## 🆕 Recent Changes
+
+### October 2025 Updates
+
+**New Endpoints:**
+- `POST /highlight` - Highlight selected nodes with yellow cell overlays
+
+**Data Changes:**
+- **Cost Range**: Updated from 0-1 to 30-100 for realistic optimization
+- **Benefits**: Remain normalized 0-1 (unchanged)
+
+**Visualization Updates:**
+- Removed colorbar from preprocessing output
+- Added yellow transparent overlay (35% opacity) for selected cells
+- Enhanced grid lines visibility (50% opacity, 1px thick)
+
+**Postprocessing Features:**
+- Entire grid cells highlighted, not just node circles
+- Gold node markers with checkmarks (✓) on selected nodes
+- Legend showing selected vs. non-selected counts
+- Selection statistics in API response
 
