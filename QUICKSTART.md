@@ -69,7 +69,7 @@ python main.py
 
 ### Method 1: Using curl
 
-#### Process an Image
+#### 1. Process an Image (Preprocessing)
 
 ```bash
 curl -X POST http://localhost:8000/process \
@@ -94,12 +94,47 @@ Response:
     "num_edges": 12,
     "density": 0.5,
     "avg_benefit": 0.45,
-    "avg_cost": 0.52
+    "avg_cost": 65.23
   }
 }
 ```
 
-#### Download Results
+**Note:** Benefits are normalized 0-1, Costs are in range 30-100
+
+#### 2. Highlight Selected Nodes (Postprocessing - NEW!)
+
+```bash
+# Create a selection matrix CSV
+echo "1,0,1" > selection.csv
+echo "0,1,0" >> selection.csv
+echo "1,0,1" >> selection.csv
+
+# Highlight the selected nodes
+curl -X POST http://localhost:8000/highlight \
+  -F "file=@preprocessing/data/map.png" \
+  -F "selection_matrix=@selection.csv" \
+  -F "nodes=9"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "job_id": "xyz-789",
+  "nodes": 9,
+  "grid_size": "3x3",
+  "selected_nodes": 5,
+  "total_nodes": 9,
+  "selection_percentage": 55.56,
+  "file": {
+    "highlighted_visualization": "/results/xyz-789/..._highlighted.png"
+  }
+}
+```
+
+**Visual Features:** 🟨 Yellow overlay on selected cells, ✅ Checkmarks on nodes
+
+#### 3. Download Results
 
 ```bash
 # Download benefits CSV

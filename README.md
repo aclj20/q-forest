@@ -9,6 +9,7 @@ A Python-based API for transforming spatial heatmap images into weighted graph n
 - **🗺️ Heatmap Analysis**: Convert spatial heatmaps into weighted graph networks
 - **🎯 Smart Detection**: Advanced color detection algorithms identify high-value areas
 - **📊 Multiple Outputs**: Generate benefit matrices, cost matrices, and visualizations
+- **🎨 Node Highlighting**: Visualize selected nodes with yellow cell overlays (NEW!)
 - **🌐 REST API**: FastAPI-powered backend for easy integration
 - **⚡ Fast Processing**: Python-powered backend with efficient algorithms
 - **💾 Data Export**: Download results in CSV and PNG formats
@@ -25,6 +26,9 @@ q-forest/
 ├── preprocessing/        # Core image processing
 │   ├── image_to_graph.py
 │   └── data/
+├── postprocessing/       # Node highlighting
+│   ├── highlight_nodes.py
+│   └── example_selection.csv
 └── frontend/            # Web UI (not yet implemented)
 ```
 
@@ -192,11 +196,17 @@ The API is ready to accept requests from any frontend application!
 
 ## 📊 Output Files
 
+### Preprocessing Output:
 For each processed image, you'll get:
 
-- `{name}_benefits.csv` - Benefits matrix (normalized 0-1)
-- `{name}_costs.csv` - Costs matrix (random 0-1)
-- `{name}_visualization.png` - Graph overlay on original image
+- `{name}_benefits.csv` - Benefits matrix (normalized 0-1, based on heatmap colors)
+- `{name}_costs.csv` - Costs matrix (random 30-100, for optimization)
+- `{name}_visualization.png` - Graph overlay on original image (no colorbar)
+
+### Postprocessing Output:
+After highlighting selected nodes:
+
+- `{name}_highlighted.png` - Visualization with yellow cell overlays on selected nodes
 
 ## 🛠️ Technology Stack
 
@@ -212,16 +222,62 @@ For each processed image, you'll get:
 
 - `GET /` - API status
 - `GET /health` - Health check
-- `POST /process` - Process uploaded image
+- `POST /process` - Process uploaded image and generate node graph
+- `POST /highlight` - Highlight selected nodes on visualization (NEW!)
 - `GET /download/{job_id}/{filename}` - Download result files
 - `GET /node-options` - Get valid node count options
 
+### Postprocessing: Node Highlighting
+
+After generating a node graph, you can highlight specific nodes based on optimization results:
+
+```bash
+curl -X POST http://localhost:8000/highlight \
+  -F "file=@image.png" \
+  -F "selection_matrix=@selection.csv" \
+  -F "nodes=9"
+```
+
+**Selection matrix format** (CSV with 1=selected, 0=not):
+```csv
+1,0,1
+0,1,0
+1,0,1
+```
+
+**Visual Features:**
+- 🟨 **Yellow Cell Overlay**: Selected grid cells highlighted with 35% transparency
+- ✅ **Checkmarks**: Selected nodes marked with gold circles and checkmarks
+- 📊 **Statistics**: Shows selected vs. total nodes and selection percentage
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "job_id": "uuid",
+  "selected_nodes": 5,
+  "total_nodes": 9,
+  "selection_percentage": 55.56,
+  "file": {
+    "highlighted_visualization": "/results/{job_id}/highlighted.png"
+  }
+}
+```
+
 ## 📝 Example Use Cases
 
+### Typical Workflow:
+1. **Upload heatmap** → Process with Q-FOREST (e.g., 400 nodes)
+2. **Run optimization** → Use benefits (0-1) and costs (30-100) matrices
+3. **Get solution** → Binary matrix of selected nodes
+4. **Visualize results** → Highlight selected nodes with yellow overlays
+
+### Application Domains:
 - **Forest Management**: Identify optimal locations for conservation efforts
 - **Urban Planning**: Analyze resource distribution in city planning
 - **Environmental Studies**: Map ecological hotspots
-- **Optimization Research**: Generate input data for quantum algorithms
+- **Optimization Research**: Generate input data for quantum/classical algorithms
+- **Resource Allocation**: Visualize and compare different solution strategies
 
 ## 🔒 Security Considerations
 
@@ -290,6 +346,25 @@ If you use Q-FOREST in your research, please cite:
 ```
 Q-FOREST: Quantum-inspired Forest Optimization & Resource Evaluation System
 ```
+
+## 🆕 Recent Updates
+
+### Version 1.1.0 (October 2025)
+
+**✨ New Features:**
+- 🎨 **Postprocessing Module**: Highlight selected nodes on visualizations
+- 🟨 **Yellow Cell Overlay**: Transparent highlighting of entire grid cells
+- 📊 **Enhanced API**: New `/highlight` endpoint for result visualization
+
+**🔧 Improvements:**
+- 💰 **Cost Range Updated**: Changed from 0-1 to 30-100 for realistic optimization
+- 🎨 **Cleaner Visualizations**: Removed colorbar from preprocessing output
+- 📈 **Better Grid Lines**: Enhanced visibility with 50% opacity
+
+**📊 Tested Configurations:**
+- ✅ Small grids: 9 nodes (3×3)
+- ✅ Medium grids: 64 nodes (8×8)
+- ✅ Large grids: 400 nodes (20×20)
 
 ---
 
