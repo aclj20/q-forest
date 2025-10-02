@@ -6,7 +6,7 @@ def solve_optimization():
 	alphaMatrix = pd.read_csv("./preprocessing/data/map2_9nodes_benefits_normalized_matrix.csv", header=None).values
 	weightCostMatrix = pd.read_csv("./preprocessing/data/map2_9nodes_costs_matrix.csv", header=None).values
 
-	budget = 4
+	budget = 1
 
 	alphaList = alphaMatrix.flatten() 
 	weightCostList = weightCostMatrix.flatten()
@@ -16,13 +16,17 @@ def solve_optimization():
 
 	objective = cp.Maximize(alphaList @ variables)  
 
-	constraint = [weightCostList @ variables <= budget]  
+	constraint = [weightCostList @ variables <= budget]
+
+	for i in range(n_nodes):
+		constraint.append(variables[i] >= 0)
+		constraint.append(variables[i] <= 1)
 
 	problem = cp.Problem(objective, constraint)
 	result = problem.solve()
 
-	selected_vector = np.round(variables.value).astype(int)
-
+	selected_vector = variables.value  # .astype(int)
+	print("Estado del problema:", problem.status)
 	solution_matrix = selected_vector.reshape(alphaMatrix.shape)
 
 	print(f"Resultado óptimo: {result:.2f}")
