@@ -22,9 +22,10 @@ q-forest/
 │   ├── requirements.txt # Python dependencies
 │   ├── uploads/         # Temporary file storage
 │   └── results/         # Generated outputs
-└── preprocessing/        # Core image processing
-    ├── image_to_graph.py
-    └── data/
+├── preprocessing/        # Core image processing
+│   ├── image_to_graph.py
+│   └── data/
+└── frontend/            # Web UI (not yet implemented)
 ```
 
 ## 🚀 Quick Start
@@ -126,6 +127,59 @@ python image_to_graph.py data/map.png --nodes 64
 # Valid node counts: 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144
 ```
 
+## 🌐 Web Frontend
+
+### Status: Not Yet Implemented
+
+A web-based user interface for Q-FOREST is planned but not currently available. The frontend would provide:
+
+**Planned Features:**
+- 🖼️ **Drag & Drop Upload**: Easy image upload interface
+- 🎛️ **Interactive Controls**: Visual node count selector
+- 📊 **Live Results**: Real-time visualization of processed graphs
+- 💾 **One-Click Downloads**: Easy access to CSV and PNG files
+- 📈 **Statistics Dashboard**: Visual representation of graph metrics
+- 🎨 **Modern UI/UX**: Beautiful, responsive interface
+
+**Technology Stack (Proposed):**
+- React + TypeScript
+- Modern CSS frameworks (Tailwind/Material-UI)
+- RESTful integration with existing FastAPI backend
+
+### Current Alternative
+
+For now, users can interact with the API using:
+
+1. **Swagger UI**: Interactive API testing at `http://localhost:8000/docs`
+2. **Command Line**: Using `curl` or similar tools (see examples above)
+3. **Python Scripts**: Direct API integration (see `TESTING.md`)
+4. **Postman/Insomnia**: Import OpenAPI schema from `http://localhost:8000/openapi.json`
+
+### Contributing
+
+If you're interested in building a frontend for Q-FOREST:
+- The backend API is fully functional and documented
+- CORS is enabled for easy integration
+- Check out `TESTING.md` for API usage examples
+- Contributions are welcome! Please open an issue or PR
+
+**Recommended Frontend Setup:**
+```bash
+# Example structure
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── ImageUpload.tsx
+│   │   ├── NodeSelector.tsx
+│   │   └── Results.tsx
+│   ├── services/
+│   │   └── api.ts          # API client for Q-FOREST backend
+│   └── App.tsx
+└── package.json
+```
+
+The API is ready to accept requests from any frontend application!
+
 ## 🎨 How It Works
 
 1. **Image Analysis**: The system analyzes heatmap colors (pink/magenta and green areas)
@@ -224,11 +278,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is open source and available under the MIT License.
-
-## 👨‍💻 Authors
-
-- Original preprocessing algorithm: Ariana Lopez
-- API implementation: Q-FOREST Team
 
 ## 🐛 Issues
 
