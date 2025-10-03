@@ -403,6 +403,214 @@ async def optimize_classic(
             costs_path.unlink()
 
 
+@app.post("/optimize/full-pipeline")
+async def full_pipeline(
+    file: UploadFile = File(...),
+    nodes: int = Form(...),
+    budget: float = Form(...)
+):
+    """
+    Complete pipeline: Preprocessing -> Optimization -> Postprocessing
+    
+    This endpoint combines all three steps:
+    1. Process image and generate graph (preprocessing)
+    2. Run classical optimization solver
+    3. Highlight selected nodes on original image (postprocessing)
+    
+    Parameters:
+    - file: Image file (PNG, JPG, JPEG)
+    - nodes: Number of nodes (must be perfect square: 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 400)
+    - budget: Budget constraint for optimization
+    
+    Returns:
+    - Complete results from all three stages with files and statistics
+    """
+    # Validate node count
+    sqrt_nodes = int(np.sqrt(nodes))
+    if sqrt_nodes * sqrt_nodes != nodes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{nodes} is not a perfect square. Valid values: 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 400"
+        )
+    
+    # Validate budget
+    if budget <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Budget must be positive"
+        )
+    
+    # Generate unique ID for this pipeline run
+    job_id = str(uuid.uuid4())
+    result_dir = RESULTS_DIR / job_id
+    result_dir.mkdir(exist_ok=True)
+    
+    try:
+        # Save uploaded file
+        upload_path = UPLOAD_DIR / f"{job_id}_{file.filename}"
+        with upload_path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # ==================================================================
+        # STAGE 1: PREPROCESSING
+        # ==================================================================
+        grid_size = (sqrt_nodes, sqrt_nodes)
+        converter = HeatmapToGraph(grid_size=grid_size)
+        
+        # Load and process image
+        converter.load_image(str(upload_path))
+        converter.create_grid_nodes()
+        converter.create_edges(connection_type="adjacent")
+        
+        # Generate visualization
+        viz_path = result_dir / f"{job_id}_preprocessing_visualization.png"
+        converter.visualize_graph_on_image(save_path=str(viz_path), show_weights=False)
+        
+        # Get matrices
+        benefits_matrix = converter.get_weight_matrix()[1]  # Get normalized version
+        costs_matrix = converter.get_cost_matrix()
+        
+        # Save matrices
+        benefits_path = result_dir / f"{job_id}_benefits_matrix.csv"
+        costs_path = result_dir / f"{job_id}_costs_matrix.csv"
+        np.savetxt(benefits_path, benefits_matrix, delimiter=',', fmt='%.6f')
+        np.savetxt(costs_path, costs_matrix, delimiter=',', fmt='%.6f')
+        
+        # Preprocessing statistics
+        preprocessing_stats = {
+            "num_nodes": converter.graph.number_of_nodes(),
+            "num_edges": converter.graph.number_of_edges(),
+            "grid_size": f"{sqrt_nodes}x{sqrt_nodes}",
+            "density": round(2 * converter.graph.number_of_edges() / 
+                           (converter.graph.number_of_nodes() * (converter.graph.number_of_nodes() - 1)), 4),
+            "benefit_stats": {
+                "min": float(benefits_matrix.min()),
+                "max": float(benefits_matrix.max()),
+                "mean": float(benefits_matrix.mean()),
+                "std": float(benefits_matrix.std())
+            },
+            "cost_stats": {
+                "min": float(costs_matrix.min()),
+                "max": float(costs_matrix.max()),
+                "mean": float(costs_matrix.mean()),
+                "std": float(costs_matrix.std())
+            }
+        }
+        
+        # ==================================================================
+        # STAGE 2: OPTIMIZATION (CLASSIC SOLVER)
+        # ==================================================================
+        solver = ClassicSolver()
+        optimization_result = solver.solve(
+            benefits=benefits_matrix,
+            costs=costs_matrix,
+            budget=budget,
+            verbose=False
+        )
+        
+        # Save solution matrices
+        solution_path = result_dir / f"{job_id}_solution_matrix.csv"
+        binary_path = result_dir / f"{job_id}_solution_binary.csv"
+        np.savetxt(solution_path, optimization_result['solution_matrix'], delimiter=',', fmt='%.6f')
+        
+        binary_solution = (optimization_result['solution_matrix'] > 0.5).astype(int)
+        np.savetxt(binary_path, binary_solution, delimiter=',', fmt='%d')
+        
+        optimization_stats = {
+            "status": optimization_result['status'],
+            "objective_value": optimization_result['objective_value'],
+            "selected_count": optimization_result['selected_count'],
+            "total_nodes": int(benefits_matrix.size),
+            "selection_percentage": round((optimization_result['selected_count'] / benefits_matrix.size) * 100, 2),
+            "total_benefit": optimization_result['total_benefit'],
+            "total_cost": optimization_result['total_cost'],
+            "budget": optimization_result['budget'],
+            "budget_utilization": round(optimization_result['budget_utilization'], 2)
+        }
+        
+        # ==================================================================
+        # STAGE 3: POSTPROCESSING (HIGHLIGHTING)
+        # ==================================================================
+        highlighter = NodeHighlighter(image_path=str(upload_path), grid_size=grid_size)
+        highlighter.load_and_process()
+        
+        # Get selected coordinates
+        selected_coords = []
+        for i in range(binary_solution.shape[0]):
+            for j in range(binary_solution.shape[1]):
+                if binary_solution[i, j] == 1:
+                    selected_coords.append((i, j))
+        
+        # Create highlighted visualization
+        highlighted_path = result_dir / f"{job_id}_highlighted_result.png"
+        highlighter.highlight_selected_nodes(
+            selection_matrix=binary_solution,
+            output_path=str(highlighted_path)
+        )
+        
+        postprocessing_stats = {
+            "selected_nodes": len(selected_coords),
+            "total_nodes": int(binary_solution.size),
+            "selection_percentage": round((len(selected_coords) / binary_solution.size) * 100, 2),
+            "grid_size": f"{sqrt_nodes}x{sqrt_nodes}",
+            "selected_coordinates": selected_coords[:20]  # First 20 for brevity
+        }
+        
+        # ==================================================================
+        # PREPARE RESPONSE
+        # ==================================================================
+        return JSONResponse(content={
+            "success": True,
+            "job_id": job_id,
+            "pipeline_stages": {
+                "preprocessing": {
+                    "status": "completed",
+                    "statistics": preprocessing_stats,
+                    "files": {
+                        "visualization": f"/results/{job_id}/{job_id}_preprocessing_visualization.png",
+                        "benefits_matrix": f"/results/{job_id}/{job_id}_benefits_matrix.csv",
+                        "costs_matrix": f"/results/{job_id}/{job_id}_costs_matrix.csv"
+                    }
+                },
+                "optimization": {
+                    "status": "completed",
+                    "statistics": optimization_stats,
+                    "files": {
+                        "solution_matrix": f"/results/{job_id}/{job_id}_solution_matrix.csv",
+                        "solution_binary": f"/results/{job_id}/{job_id}_solution_binary.csv"
+                    }
+                },
+                "postprocessing": {
+                    "status": "completed",
+                    "statistics": postprocessing_stats,
+                    "files": {
+                        "highlighted_image": f"/results/{job_id}/{job_id}_highlighted_result.png"
+                    }
+                }
+            },
+            "summary": {
+                "nodes": nodes,
+                "grid_size": f"{sqrt_nodes}x{sqrt_nodes}",
+                "budget": budget,
+                "selected_nodes": len(selected_coords),
+                "selection_percentage": round((len(selected_coords) / binary_solution.size) * 100, 2),
+                "total_benefit": optimization_result['total_benefit'],
+                "total_cost": optimization_result['total_cost'],
+                "budget_utilization": round(optimization_result['budget_utilization'], 2)
+            }
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
+    
+    finally:
+        # Clean up uploaded file
+        if upload_path.exists():
+            upload_path.unlink()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

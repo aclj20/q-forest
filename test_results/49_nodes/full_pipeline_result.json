@@ -1,0 +1,154 @@
+{
+    "success": true,
+    "job_id": "eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104",
+    "pipeline_stages": {
+        "preprocessing": {
+            "status": "completed",
+            "statistics": {
+                "num_nodes": 49,
+                "num_edges": 84,
+                "grid_size": "7x7",
+                "density": 0.0714,
+                "benefit_stats": {
+                    "min": 0.028509763617677288,
+                    "max": 1.0,
+                    "mean": 0.6117865511672295,
+                    "std": 0.2491485979681924
+                },
+                "cost_stats": {
+                    "min": 30.0,
+                    "max": 120.0,
+                    "mean": 75.0,
+                    "std": 30.0
+                }
+            },
+            "files": {
+                "visualization": "/results/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104_preprocessing_visualization.png",
+                "benefits_matrix": "/results/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104_benefits_matrix.csv",
+                "costs_matrix": "/results/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104_costs_matrix.csv"
+            }
+        },
+        "optimization": {
+            "status": "completed",
+            "statistics": {
+                "status": "optimal",
+                "objective_value": 18.993184139319528,
+                "selected_count": 24,
+                "total_nodes": 49,
+                "selection_percentage": 48.98,
+                "total_benefit": 18.74094380583445,
+                "total_cost": 1470.0,
+                "budget": 1500.0,
+                "budget_utilization": 98.0
+            },
+            "files": {
+                "solution_matrix": "/results/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104_solution_matrix.csv",
+                "solution_binary": "/results/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104_solution_binary.csv"
+            }
+        },
+        "postprocessing": {
+            "status": "completed",
+            "statistics": {
+                "selected_nodes": 24,
+                "total_nodes": 49,
+                "selection_percentage": 48.98,
+                "grid_size": "7x7",
+                "selected_coordinates": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        1,
+                        2
+                    ],
+                    [
+                        2,
+                        1
+                    ],
+                    [
+                        2,
+                        2
+                    ],
+                    [
+                        3,
+                        0
+                    ],
+                    [
+                        3,
+                        1
+                    ],
+                    [
+                        3,
+                        2
+                    ],
+                    [
+                        3,
+                        4
+                    ],
+                    [
+                        3,
+                        5
+                    ],
+                    [
+                        4,
+                        0
+                    ],
+                    [
+                        4,
+                        1
+                    ],
+                    [
+                        4,
+                        2
+                    ],
+                    [
+                        4,
+                        3
+                    ],
+                    [
+                        4,
+                        4
+                    ],
+                    [
+                        5,
+                        0
+                    ],
+                    [
+                        5,
+                        1
+                    ],
+                    [
+                        5,
+                        2
+                    ],
+                    [
+                        5,
+                        3
+                    ],
+                    [
+                        5,
+                        4
+                    ],
+                    [
+                        5,
+                        5
+                    ]
+                ]
+            },
+            "files": {
+                "highlighted_image": "/results/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104/eaaf5d3f-709b-4a69-9fbf-b5d1c4ee4104_highlighted_result.png"
+            }
+        }
+    },
+    "summary": {
+        "nodes": 49,
+        "grid_size": "7x7",
+        "budget": 1500.0,
+        "selected_nodes": 24,
+        "selection_percentage": 48.98,
+        "total_benefit": 18.74094380583445,
+        "total_cost": 1470.0,
+        "budget_utilization": 98.0
+    }
+}

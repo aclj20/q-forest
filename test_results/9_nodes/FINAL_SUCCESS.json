@@ -1,0 +1,102 @@
+{
+    "success": true,
+    "job_id": "10592e2d-ee6c-4a8f-b06b-41de1a87f28d",
+    "pipeline_stages": {
+        "preprocessing": {
+            "status": "completed",
+            "statistics": {
+                "num_nodes": 9,
+                "num_edges": 12,
+                "grid_size": "3x3",
+                "density": 0.3333,
+                "benefit_stats": {
+                    "min": 0.29968349584687615,
+                    "max": 0.8031875189599132,
+                    "mean": 0.6190920345090486,
+                    "std": 0.1505990834809664
+                },
+                "cost_stats": {
+                    "min": 30.0,
+                    "max": 60.0,
+                    "mean": 45.0,
+                    "std": 12.24744871391589
+                }
+            },
+            "files": {
+                "visualization": "/results/10592e2d-ee6c-4a8f-b06b-41de1a87f28d/10592e2d-ee6c-4a8f-b06b-41de1a87f28d_preprocessing_visualization.png",
+                "benefits_matrix": "/results/10592e2d-ee6c-4a8f-b06b-41de1a87f28d/10592e2d-ee6c-4a8f-b06b-41de1a87f28d_benefits_matrix.csv",
+                "costs_matrix": "/results/10592e2d-ee6c-4a8f-b06b-41de1a87f28d/10592e2d-ee6c-4a8f-b06b-41de1a87f28d_costs_matrix.csv"
+            }
+        },
+        "optimization": {
+            "status": "completed",
+            "statistics": {
+                "status": "optimal",
+                "objective_value": 4.599990975608639,
+                "selected_count": 7,
+                "total_nodes": 9,
+                "selection_percentage": 77.78,
+                "total_benefit": 4.754470448537378,
+                "total_cost": 315.0,
+                "budget": 300.0,
+                "budget_utilization": 105.0
+            },
+            "files": {
+                "solution_matrix": "/results/10592e2d-ee6c-4a8f-b06b-41de1a87f28d/10592e2d-ee6c-4a8f-b06b-41de1a87f28d_solution_matrix.csv",
+                "solution_binary": "/results/10592e2d-ee6c-4a8f-b06b-41de1a87f28d/10592e2d-ee6c-4a8f-b06b-41de1a87f28d_solution_binary.csv"
+            }
+        },
+        "postprocessing": {
+            "status": "completed",
+            "statistics": {
+                "selected_nodes": 7,
+                "total_nodes": 9,
+                "selection_percentage": 77.78,
+                "grid_size": "3x3",
+                "selected_coordinates": [
+                    [
+                        0,
+                        1
+                    ],
+                    [
+                        1,
+                        0
+                    ],
+                    [
+                        1,
+                        1
+                    ],
+                    [
+                        1,
+                        2
+                    ],
+                    [
+                        2,
+                        0
+                    ],
+                    [
+                        2,
+                        1
+                    ],
+                    [
+                        2,
+                        2
+                    ]
+                ]
+            },
+            "files": {
+                "highlighted_image": "/results/10592e2d-ee6c-4a8f-b06b-41de1a87f28d/10592e2d-ee6c-4a8f-b06b-41de1a87f28d_highlighted_result.png"
+            }
+        }
+    },
+    "summary": {
+        "nodes": 9,
+        "grid_size": "3x3",
+        "budget": 300.0,
+        "selected_nodes": 7,
+        "selection_percentage": 77.78,
+        "total_benefit": 4.754470448537378,
+        "total_cost": 315.0,
+        "budget_utilization": 105.0
+    }
+}
