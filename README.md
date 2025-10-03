@@ -32,6 +32,10 @@ q-forest/
 ├── postprocessing/       # Node highlighting
 │   ├── highlight_nodes.py
 │   └── example_selection.csv
+├── classic/             # Classical optimization
+│   ├── classic_solver.py
+│   └── README.md
+├── quantum-knapsack/    # Quantum optimization
 └── frontend/            # Web UI (not yet implemented)
 ```
 
@@ -226,7 +230,8 @@ After highlighting selected nodes:
 - `GET /` - API status
 - `GET /health` - Health check
 - `POST /process` - Process uploaded image and generate node graph
-- `POST /highlight` - Highlight selected nodes on visualization (NEW!)
+- `POST /optimize/classic` - Run classical optimization on benefits/costs matrices
+- `POST /highlight` - Highlight selected nodes on visualization
 - `GET /download/{job_id}/{filename}` - Download result files
 - `GET /node-options` - Get valid node count options
 
@@ -271,9 +276,46 @@ curl -X POST http://localhost:8000/highlight \
 
 ### Typical Workflow:
 1. **Upload heatmap** → Process with Q-FOREST (e.g., 400 nodes)
-2. **Run optimization** → Use benefits (0-1) and costs (30-100) matrices
+2. **Run optimization** → Use benefits (0-1) and costs (30-100) matrices with classical or quantum algorithms
 3. **Get solution** → Binary matrix of selected nodes
 4. **Visualize results** → Highlight selected nodes with yellow overlays
+
+### Complete API Workflow Example:
+
+```bash
+# Step 1: Process image to generate benefits and costs matrices
+curl -X POST http://localhost:8000/process \
+  -F "file=@map.png" \
+  -F "nodes=9" \
+  > process_result.json
+
+# Extract job_id and download matrices
+JOB_ID=$(cat process_result.json | jq -r '.job_id')
+curl "http://localhost:8000/results/$JOB_ID/${JOB_ID}_9nodes_benefits.csv" -o benefits.csv
+curl "http://localhost:8000/results/$JOB_ID/${JOB_ID}_9nodes_costs.csv" -o costs.csv
+
+# Step 2: Run classical optimization
+curl -X POST http://localhost:8000/optimize/classic \
+  -F "benefits_file=@benefits.csv" \
+  -F "costs_file=@costs.csv" \
+  -F "budget=250.0" \
+  > optimize_result.json
+
+# Download solution matrix
+OPT_JOB_ID=$(cat optimize_result.json | jq -r '.job_id')
+curl "http://localhost:8000/results/$OPT_JOB_ID/${OPT_JOB_ID}_solution_binary.csv" -o solution.csv
+
+# Step 3: Visualize results with highlighted nodes
+curl -X POST http://localhost:8000/highlight \
+  -F "file=@map.png" \
+  -F "selection_matrix=@solution.csv" \
+  -F "nodes=9" \
+  > highlight_result.json
+
+# Download final visualization
+VIZ_JOB_ID=$(cat highlight_result.json | jq -r '.job_id')
+curl "http://localhost:8000/results/$VIZ_JOB_ID/${VIZ_JOB_ID}_9nodes_highlighted.png" -o final_result.png
+```
 
 ### Application Domains:
 - **Forest Management**: Identify optimal locations for conservation efforts

@@ -1,0 +1,134 @@
+[
+  {
+    "nodes": 4,
+    "success": true,
+    "job_id": "138ba5d4-c02b-466d-9a1b-67115315d978",
+    "grid_size": "2x2",
+    "statistics": {
+      "num_nodes": 4,
+      "num_edges": 4,
+      "density": 0.6667,
+      "avg_benefit": 0.6296,
+      "avg_cost": 37.5
+    },
+    "cost_matrix": {
+      "min": 30.0,
+      "max": 45.0,
+      "mean": 37.5,
+      "shape": [
+        2,
+        2
+      ]
+    }
+  },
+  {
+    "nodes": 9,
+    "success": true,
+    "job_id": "d54041de-a3d4-4f2d-b463-f9785f5152b6",
+    "grid_size": "3x3",
+    "statistics": {
+      "num_nodes": 9,
+      "num_edges": 12,
+      "density": 0.3333,
+      "avg_benefit": 0.6191,
+      "avg_cost": 45.0
+    },
+    "cost_matrix": {
+      "min": 30.0,
+      "max": 60.0,
+      "mean": 45.0,
+      "shape": [
+        3,
+        3
+      ]
+    }
+  },
+  {
+    "nodes": 16,
+    "success": true,
+    "job_id": "89f12057-2975-4bc3-9b93-93c9aca9b424",
+    "grid_size": "4x4",
+    "statistics": {
+      "num_nodes": 16,
+      "num_edges": 24,
+      "density": 0.2,
+      "avg_benefit": 0.603,
+      "avg_cost": 52.5
+    },
+    "cost_matrix": {
+      "min": 30.0,
+      "max": 75.0,
+      "mean": 52.5,
+      "shape": [
+        4,
+        4
+      ]
+    }
+  },
+  {
+    "nodes": 36,
+    "success": true,
+    "job_id": "a83027ba-57f2-4a7e-a3f4-a749d970d129",
+    "grid_size": "6x6",
+    "statistics": {
+      "num_nodes": 36,
+      "num_edges": 60,
+      "density": 0.0952,
+      "avg_benefit": 0.6195,
+      "avg_cost": 67.5
+    },
+    "cost_matrix": {
+      "min": 30.0,
+      "max": 105.0,
+      "mean": 67.5,
+      "shape": [
+        6,
+        6
+      ]
+    }
+  },
+  {
+    "nodes": 100,
+    "success": true,
+    "job_id": "94d2d46c-d463-4a6f-86e4-23df9583c41c",
+    "grid_size": "10x10",
+    "statistics": {
+      "num_nodes": 100,
+      "num_edges": 180,
+      "density": 0.0364,
+      "avg_benefit": 0.6051,
+      "avg_cost": 97.5
+    },
+    "cost_matrix": {
+      "min": 30.0,
+      "max": 165.0,
+      "mean": 97.5,
+      "shape": [
+        10,
+        10
+      ]
+    }
+  },
+  {
+    "nodes": 400,
+    "success": true,
+    "job_id": "8034912b-b941-4005-b3fe-773ee75ca42b",
+    "grid_size": "20x20",
+    "statistics": {
+      "num_nodes": 400,
+      "num_edges": 760,
+      "density": 0.0095,
+      "avg_benefit": 0.592,
+      "avg_cost": 172.5
+    },
+    "cost_matrix": {
+      "min": 30.0,
+      "max": 315.0,
+      "mean": 172.5,
+      "shape": [
+        20,
+        20
+      ]
+    }
+  }
+]

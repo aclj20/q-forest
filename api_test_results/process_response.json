@@ -1,0 +1,18 @@
+{
+    "success": true,
+    "job_id": "8010b762-453e-41a6-92f3-fe1d67f1f849",
+    "nodes": 36,
+    "grid_size": "6x6",
+    "files": {
+        "visualization": "/results/8010b762-453e-41a6-92f3-fe1d67f1f849/8010b762-453e-41a6-92f3-fe1d67f1f849_36nodes_visualization.png",
+        "benefits_csv": "/results/8010b762-453e-41a6-92f3-fe1d67f1f849/8010b762-453e-41a6-92f3-fe1d67f1f849_36nodes_benefits.csv",
+        "costs_csv": "/results/8010b762-453e-41a6-92f3-fe1d67f1f849/8010b762-453e-41a6-92f3-fe1d67f1f849_36nodes_costs.csv"
+    },
+    "statistics": {
+        "num_nodes": 36,
+        "num_edges": 60,
+        "density": 0.0952,
+        "avg_benefit": 0.6195,
+        "avg_cost": 67.5
+    }
+}
