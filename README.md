@@ -193,27 +193,49 @@ The API is ready to accept requests from any frontend application!
 
 ## 🎨 How It Works
 
-1. **Image Analysis**: The system analyzes heatmap colors (pink/magenta and green areas)
-2. **Grid Generation**: Creates a grid of nodes over the image
-3. **Weight Calculation**: Assigns benefit weights based on color diversity
-4. **Cost Generation**: Generates random costs for optimization algorithms
+### Preprocessing
+1. **Image Analysis**: Analyzes heatmap colors (pink/magenta and green areas)
+2. **Grid Generation**: Creates a grid of nodes over the image (e.g., 6×6 for 36 nodes)
+3. **Weight Calculation**: Assigns benefit weights (0-1) based on color diversity
+4. **Cost Generation**: Generates column-based costs (leftmost column: 30, each column +15)
 5. **Graph Creation**: Builds a NetworkX graph with adjacency information
 6. **Visualization**: Overlays the graph on the original image
-7. **Export**: Saves matrices and visualizations
+
+### Optimization (Classic Solver)
+1. **SDP Formulation**: Uses semidefinite programming via CVXPY
+2. **Objective**: Maximize total benefit subject to budget constraint
+3. **Solution**: Returns continuous values (0-1) for each node
+4. **Rounding**: Converts to binary (0/1) using 0.5 threshold
+5. **Non-binary Detection**: Identifies fractional values for analysis
+
+### Postprocessing
+1. **Node Highlighting**: Overlays yellow cells on selected nodes
+2. **Visual Enhancement**: Adds checkmarks and enhanced grid lines
+3. **Statistics**: Displays selection count and percentage
+4. **Export**: Saves highlighted visualization
 
 ## 📊 Output Files
 
 ### Preprocessing Output:
 For each processed image, you'll get:
 
-- `{name}_benefits.csv` - Benefits matrix (normalized 0-1, based on heatmap colors)
-- `{name}_costs.csv` - Costs matrix (random 30-100, for optimization)
-- `{name}_visualization.png` - Graph overlay on original image (no colorbar)
+- `{name}_benefits.csv` - Benefits matrix (normalized 0-1, based on heatmap color diversity)
+- `{name}_costs.csv` - Costs matrix (column-based: 30, 45, 60, 75, 90, 105, ...)
+- `{name}_visualization.png` - Graph overlay on original image with grid
+
+### Optimization Output:
+After running the classical solver:
+
+- `{name}_solution_matrix.csv` - Continuous solution (values 0-1)
+- `{name}_solution_binary.csv` - Binary solution (0 or 1)
+- Non-binary positions report (fractional values between 0 and 1)
 
 ### Postprocessing Output:
 After highlighting selected nodes:
 
 - `{name}_highlighted.png` - Visualization with yellow cell overlays on selected nodes
+- Checkmarks on selected node centers
+- Selection statistics overlay
 
 ## 🛠️ Technology Stack
 
@@ -227,13 +249,37 @@ After highlighting selected nodes:
 
 ## 🔧 API Endpoints
 
+### 🚀 Recommended: Full Pipeline
+- `POST /optimize/full-pipeline` - **Complete workflow** (preprocessing → optimization → highlighting)
+
+### Individual Endpoints
 - `GET /` - API status
 - `GET /health` - Health check
-- `POST /process` - Process uploaded image and generate node graph
-- `POST /optimize/classic` - Run classical optimization on benefits/costs matrices
-- `POST /highlight` - Highlight selected nodes on visualization
+- `POST /process` - Process uploaded image and generate node graph (preprocessing)
+- `POST /optimize/classic` - Run classical SDP optimization on benefits/costs matrices
+- `POST /highlight` - Highlight selected nodes on visualization (postprocessing)
 - `GET /download/{job_id}/{filename}` - Download result files
 - `GET /node-options` - Get valid node count options
+
+### Full Pipeline Endpoint
+
+The `/optimize/full-pipeline` endpoint combines all three stages in a single API call:
+
+```bash
+curl -X POST http://localhost:8000/optimize/full-pipeline \
+  -F "file=@map.png" \
+  -F "nodes=36" \
+  -F "budget=1200"
+```
+
+**Returns:**
+- Preprocessing visualization with grid overlay
+- Benefits and costs matrices (CSV)
+- Optimization solution (continuous and binary matrices)
+- Highlighted result showing selected nodes
+- Complete statistics from all three stages
+
+See `backend/README.md` for complete API documentation.
 
 ### Postprocessing: Node Highlighting
 
