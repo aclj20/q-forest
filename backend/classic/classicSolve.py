@@ -28,13 +28,15 @@ def solve_optimization():
 	 
 	selected_vector = variablesArray
 
-	print("Estado del problema:", problem.status)
-	unNormalizedSolutionMatrix = np.array(selected_vector).reshape(alphaMatrix.shape)
+	print("Problem status: ", problem.status)
+	unNormalizedSolutionMatrix = selected_vector.reshape(alphaMatrix.shape)
 	normalizedSolutionMatrix =  [[np.round((element + 1 ) / 2, 5 )for element in line] for line in unNormalizedSolutionMatrix]
-	print(f"Resultado óptimo: {result:.2f}")
+	
+	print(f"Optimal Solution: {result:.2f}")
 	print("Variables (vector 0/1):", selected_vector)
-	print("Matriz de solución (0/1):")
+	print("Solution Matrix (0/1):")
 	print(normalizedSolutionMatrix)
+	
 	return normalizedSolutionMatrix
 
 # Call the function
