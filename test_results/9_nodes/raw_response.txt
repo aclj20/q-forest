@@ -1,0 +1,1 @@
+{"detail":"Pipeline error: NodeHighlighter.highlight_selected_nodes() got an unexpected keyword argument 'selected_nodes'"}
