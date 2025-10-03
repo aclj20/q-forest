@@ -1,20 +1,21 @@
+import sys
+import shutil
+import uuid
+from pathlib import Path
+
+import numpy as np
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import sys
-import os
-import shutil
-import numpy as np
-from pathlib import Path
-import uuid
-from typing import List
 
-# Add preprocessing and postprocessing directories to path
+# Add preprocessing, postprocessing, and classic directories to path
 sys.path.append(str(Path(__file__).parent.parent / "preprocessing"))
 sys.path.append(str(Path(__file__).parent.parent / "postprocessing"))
+sys.path.append(str(Path(__file__).parent.parent / "classic"))
 from image_to_graph import HeatmapToGraph
 from highlight_nodes import NodeHighlighter
+from classic_solver import ClassicSolver
 
 app = FastAPI(title="Q-FOREST API", version="1.0.0")
 
@@ -291,7 +292,117 @@ async def highlight_nodes(
             matrix_path.unlink()
 
 
+@app.post("/optimize/classic")
+async def optimize_classic(
+    benefits_file: UploadFile = File(...),
+    costs_file: UploadFile = File(...),
+    budget: float = Form(...)
+):
+    """
+    Run classical optimization using semidefinite programming (SDP)
+    
+    Parameters:
+    - benefits_file: Benefits matrix CSV file (normalized 0-1)
+    - costs_file: Costs matrix CSV file (typically 30-100)
+    - budget: Budget constraint (total cost allowed)
+    
+    Returns:
+    - JSON with solution matrix and statistics
+    """
+    # Generate unique ID for this job
+    job_id = str(uuid.uuid4())
+    
+    try:
+        # Save uploaded files
+        benefits_path = UPLOAD_DIR / f"{job_id}_benefits.csv"
+        costs_path = UPLOAD_DIR / f"{job_id}_costs.csv"
+        
+        with benefits_path.open("wb") as buffer:
+            shutil.copyfileobj(benefits_file.file, buffer)
+        
+        with costs_path.open("wb") as buffer:
+            shutil.copyfileobj(costs_file.file, buffer)
+        
+        # Load matrices
+        try:
+            import pandas as pd
+            benefits = pd.read_csv(benefits_path, header=None).values
+            costs = pd.read_csv(costs_path, header=None).values
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid CSV format: {str(e)}"
+            )
+        
+        # Validate matrix shapes match
+        if benefits.shape != costs.shape:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Benefits shape {benefits.shape} must match costs shape {costs.shape}"
+            )
+        
+        # Validate budget is positive
+        if budget <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Budget must be positive"
+            )
+        
+        # Create output directory
+        result_dir = RESULTS_DIR / job_id
+        result_dir.mkdir(exist_ok=True)
+        
+        # Run classical optimization
+        solver = ClassicSolver()
+        result = solver.solve(
+            benefits=benefits,
+            costs=costs,
+            budget=budget,
+            verbose=False  # Don't print to console in API
+        )
+        
+        # Save solution matrix
+        solution_path = result_dir / f"{job_id}_solution.csv"
+        np.savetxt(solution_path, result['solution_matrix'], delimiter=',', fmt='%.5f')
+        
+        # Convert solution to binary for easier use
+        binary_solution = (result['solution_matrix'] > 0.5).astype(int)
+        binary_path = result_dir / f"{job_id}_solution_binary.csv"
+        np.savetxt(binary_path, binary_solution, delimiter=',', fmt='%d')
+        
+        # Return results
+        return JSONResponse(content={
+            "success": True,
+            "job_id": job_id,
+            "status": result['status'],
+            "objective_value": result['objective_value'],
+            "selected_count": result['selected_count'],
+            "total_nodes": int(benefits.size),
+            "selection_percentage": round((result['selected_count'] / benefits.size) * 100, 2),
+            "total_benefit": result['total_benefit'],
+            "total_cost": result['total_cost'],
+            "budget": result['budget'],
+            "budget_utilization": round(result['budget_utilization'], 2),
+            "files": {
+                "solution_matrix": f"/results/{job_id}/{job_id}_solution.csv",
+                "solution_binary": f"/results/{job_id}/{job_id}_solution_binary.csv"
+            },
+            "matrix_shape": list(benefits.shape)
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running optimization: {str(e)}")
+    
+    finally:
+        # Clean up uploaded files
+        if benefits_path.exists():
+            benefits_path.unlink()
+        if costs_path.exists():
+            costs_path.unlink()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
