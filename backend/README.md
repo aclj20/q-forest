@@ -38,6 +38,91 @@ GET /health
 
 Returns API status
 
+### 🚀 Full Pipeline (Recommended)
+
+```bash
+POST /optimize/full-pipeline
+Content-Type: multipart/form-data
+
+Parameters:
+  - file: image file (PNG, JPG, JPEG)
+  - nodes: integer (4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 400)
+  - budget: float (budget constraint for optimization)
+
+Response:
+{
+  "success": true,
+  "job_id": "uuid",
+  "pipeline_stages": {
+    "preprocessing": {
+      "status": "completed",
+      "statistics": {
+        "num_nodes": 36,
+        "num_edges": 60,
+        "grid_size": "6x6",
+        "density": 0.0952,
+        "benefit_stats": { "min": 0.068, "max": 1.0, "mean": 0.620, "std": 0.226 },
+        "cost_stats": { "min": 30.0, "max": 105.0, "mean": 67.5, "std": 21.8 }
+      },
+      "files": {
+        "visualization": "/results/{job_id}/{job_id}_preprocessing_visualization.png",
+        "benefits_matrix": "/results/{job_id}/{job_id}_benefits_matrix.csv",
+        "costs_matrix": "/results/{job_id}/{job_id}_costs_matrix.csv"
+      }
+    },
+    "optimization": {
+      "status": "completed",
+      "statistics": {
+        "status": "optimal",
+        "objective_value": 7.5432,
+        "selected_count": 12,
+        "total_nodes": 36,
+        "selection_percentage": 33.33,
+        "total_benefit": 7.5432,
+        "total_cost": 1182.50,
+        "budget": 1200.0,
+        "budget_utilization": 98.54
+      },
+      "files": {
+        "solution_matrix": "/results/{job_id}/{job_id}_solution_matrix.csv",
+        "solution_binary": "/results/{job_id}/{job_id}_solution_binary.csv"
+      }
+    },
+    "postprocessing": {
+      "status": "completed",
+      "statistics": {
+        "selected_nodes": 12,
+        "total_nodes": 36,
+        "selection_percentage": 33.33,
+        "grid_size": "6x6",
+        "selected_coordinates": [[0,1], [1,2], ...]
+      },
+      "files": {
+        "highlighted_image": "/results/{job_id}/{job_id}_highlighted_result.png"
+      }
+    }
+  },
+  "summary": {
+    "nodes": 36,
+    "grid_size": "6x6",
+    "budget": 1200.0,
+    "selected_nodes": 12,
+    "selection_percentage": 33.33,
+    "total_benefit": 7.5432,
+    "total_cost": 1182.50,
+    "budget_utilization": 98.54
+  }
+}
+```
+
+**Usage Example:**
+```bash
+curl -X POST "http://localhost:8000/optimize/full-pipeline" \
+  -F "file=@map.png" \
+  -F "nodes=36" \
+  -F "budget=1200"
+```
+
 ### Process Image
 
 ```bash
