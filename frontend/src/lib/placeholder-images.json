@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "reforestation-area",
+      "description": "Satellite image of a forest area for reforestation analysis.",
+      "imageUrl": "https://images.unsplash.com/photo-1518934440147-5a55191b7cbf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhZXJpYWwlMjBmb3Jlc3R8ZW58MHx8fHwxNzYwMzMwMzYyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "aerial forest"
+    }
+  ]
+}

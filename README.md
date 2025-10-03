@@ -136,31 +136,25 @@ python image_to_graph.py data/map.png --nodes 64
 
 ## 🌐 Web Frontend
 
-### Status: Not Yet Implemented
+### Prerequisites
 
-A web-based user interface for Q-FOREST is planned but not currently available. The frontend would provide:
+- **Node.js 18+**
+- **npm** o **yarn**
 
-**Planned Features:**
-- 🖼️ **Drag & Drop Upload**: Easy image upload interface
-- 🎛️ **Interactive Controls**: Visual node count selector
-- 📊 **Live Results**: Real-time visualization of processed graphs
-- 💾 **One-Click Downloads**: Easy access to CSV and PNG files
-- 📈 **Statistics Dashboard**: Visual representation of graph metrics
-- 🎨 **Modern UI/UX**: Beautiful, responsive interface
+### Setup
 
-**Technology Stack (Proposed):**
-- React + TypeScript
-- Modern CSS frameworks (Tailwind/Material-UI)
-- RESTful integration with existing FastAPI backend
+```bash
+# Navigate to frontend directory
+cd frontend
 
-### Current Alternative
+# Install dependencies
+npm install
 
-For now, users can interact with the API using:
+# Start the development server
+npm run dev
 
-1. **Swagger UI**: Interactive API testing at `http://localhost:8000/docs`
-2. **Command Line**: Using `curl` or similar tools (see examples above)
-3. **Python Scripts**: Direct API integration (see `TESTING.md`)
-4. **Postman/Insomnia**: Import OpenAPI schema from `http://localhost:8000/openapi.json`
+
+The frontend will be available at http://localhost:9002
 
 ### Contributing
 

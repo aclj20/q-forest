@@ -7,6 +7,7 @@ import networkx as nx
 from PIL import Image
 from typing import Tuple, Dict
 import argparse
+import os
 
 
 class HeatmapToGraph:
@@ -364,10 +365,11 @@ class HeatmapToGraph:
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"Imagen guardada en: {save_path}")
-
-        plt.show()
+            # Construir la ruta final (ejemplo: frontend/public/graph.png)
+            output_path = os.path.join("..", "frontend", "public", "graph.png")
+            
+            plt.savefig(output_path, dpi=300, bbox_inches="tight")
+            print(f"Imagen guardada en: {output_path}")
 
     def get_graph_statistics(self) -> Dict:
         """
