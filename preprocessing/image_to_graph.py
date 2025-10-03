@@ -114,15 +114,17 @@ class HeatmapToGraph:
                 peso_normalizado = self._calculate_color_diversity_weight(
                     color_region, gray_region)
 
-                # GENERAR COSTO ALEATORIO para cada nodo (entre 30 y 100)
-                costo_aleatorio = np.random.uniform(30, 100)  # Valor aleatorio entre 30 y 100
+                # GENERAR COSTO BASADO EN COLUMNA
+                # Primera columna (j=0): costo = 30
+                # Cada columna a la derecha: costo aumenta en 15
+                costo_columna = 30 + (j * 15)  # j=0: 30, j=1: 45, j=2: 60, etc.
 
                 # Información del nodo
                 node_info = {
                     'posicion': (center_x, center_y),
                     'peso': peso_normalizado * 255.0,  # Escalar para compatibilidad
                     'peso_normalizado': peso_normalizado,  # BENEFICIO
-                    'costo': costo_aleatorio,  # COSTO ALEATORIO
+                    'costo': costo_columna,  # COSTO BASADO EN COLUMNA
                     'region': (x_start, y_start, x_end, y_end),
                     'id': f"node_{i}_{j}"
                 }

@@ -118,6 +118,69 @@ Response:
 }
 ```
 
+### Classical Optimization
+
+```bash
+POST /optimize/classic
+Content-Type: multipart/form-data
+
+Parameters:
+  - benefits_file: Benefits matrix CSV file (normalized 0-1)
+  - costs_file: Costs matrix CSV file (typically 30-100)
+  - budget: Budget constraint (float, positive number)
+
+Input Format:
+  - CSV files without headers
+  - Square matrices (n×n)
+  - Benefits range: 0.0 to 1.0
+  - Costs range: any positive values (typically 30-100)
+  - Both matrices must have same dimensions
+
+Example Benefits CSV (3×3):
+  0.299683,0.505233,0.517674
+  0.740297,0.622298,0.617919
+  0.685802,0.779734,0.803188
+
+Example Costs CSV (3×3):
+  77.044622,49.278478,67.446216
+  65.284379,80.631893,91.739316
+  37.920959,76.246703,84.928428
+
+Validation:
+  - Matrix shapes must match
+  - Budget must be positive
+  - Files must be valid CSV format
+
+Response:
+{
+  "success": true,
+  "job_id": "uuid",
+  "status": "optimal",
+  "objective_value": 2.417,
+  "selected_count": 4,
+  "total_nodes": 9,
+  "selection_percentage": 44.44,
+  "total_benefit": 2.711,
+  "total_cost": 228.73,
+  "budget": 200.0,
+  "budget_utilization": 114.37,
+  "files": {
+    "solution_matrix": "/results/{job_id}/{job_id}_solution.csv",
+    "solution_binary": "/results/{job_id}/{job_id}_solution_binary.csv"
+  },
+  "matrix_shape": [3, 3]
+}
+
+Usage Example:
+curl -X POST http://localhost:8000/optimize/classic \
+  -F "benefits_file=@benefits.csv" \
+  -F "costs_file=@costs.csv" \
+  -F "budget=200.0"
+
+Note: The solver uses SDP relaxation and may slightly exceed the budget
+constraint (typically 5-15%). This is expected behavior.
+```
+
 ## 📂 Directory Structure
 
 ```
@@ -165,6 +228,12 @@ curl -X POST http://localhost:8000/process \
   -F "file=@test_image.png" \
   -F "nodes=9"
 
+# Run classical optimization
+curl -X POST http://localhost:8000/optimize/classic \
+  -F "benefits_file=@benefits.csv" \
+  -F "costs_file=@costs.csv" \
+  -F "budget=250.0"
+
 # Highlight selected nodes
 curl -X POST http://localhost:8000/highlight \
   -F "file=@test_image.png" \
@@ -185,6 +254,8 @@ curl http://localhost:8000/node-options
 - **matplotlib**: Visualization
 - **networkx**: Graph algorithms
 - **Pillow**: Image handling
+- **cvxpy**: Convex optimization
+- **pandas**: Data manipulation
 
 ## 🐛 Error Handling
 
