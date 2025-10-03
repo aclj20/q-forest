@@ -1,21 +1,41 @@
 # Q-FOREST
 
+**Quantum-Assisted Classical Algorithm for Forestry Optimization & Resource Evaluation**
+
 python 3.9.23 
 
 pip install -r requirements.txt
-**Quantum-inspired Forest Optimization & Resource Evaluation System**
 
-A Python-based API for transforming spatial heatmap images into weighted graph networks, enabling advanced optimization algorithms for resource allocation and spatial analysis.
+A hybrid quantum-classical Python-based system that transforms spatial heatmap images into weighted graph networks, leveraging **quantum-inspired semidefinite programming** and **quantum approximate optimization algorithms (QAOA)** for optimal resource allocation in forestry and environmental planning.
+
+## 🌌 Quantum-Classical Hybrid Approach
+
+Q-FOREST combines the best of both worlds:
+- **Classical SDP Solver**: Quantum-inspired semidefinite relaxation for reliable, scalable solutions
+- **Quantum QAOA Module**: Three quantum algorithms (LinQAOA, QuadQAOA, QWQAOA) for cutting-edge optimization
+- **Hybrid Pipeline**: Classical preprocessing feeds quantum/classical solvers, with unified postprocessing
+
+This quantum-assisted approach enables solving complex combinatorial optimization problems that are intractable for purely classical methods at scale.
 
 ## 🌟 Features
 
-- **🗺️ Heatmap Analysis**: Convert spatial heatmaps into weighted graph networks
-- **🎯 Smart Detection**: Advanced color detection algorithms identify high-value areas
-- **📊 Multiple Outputs**: Generate benefit matrices, cost matrices, and visualizations
-- **🎨 Node Highlighting**: Visualize selected nodes with yellow cell overlays (NEW!)
+### Quantum-Inspired Optimization
+- **🌌 Quantum-Classical Hybrid**: Semidefinite programming with quantum-inspired relaxation
+- **⚛️ QAOA Integration**: Three quantum algorithms (LinQAOA, QuadQAOA, QWQAOA) via Qiskit
+- **🔬 Non-Binary Analysis**: Identifies quantum superposition-like fractional solutions
+- **🎯 Optimal Solutions**: Maximizes benefit while respecting budget constraints
+
+### Forestry & Spatial Analysis
+- **🗺️ Heatmap Analysis**: Convert forest/environmental heatmaps into weighted graph networks
+- **🌲 Smart Detection**: Advanced color detection identifies high-value conservation areas
+- **📊 Resource Allocation**: Optimize forestry resource distribution and planning
+- **🎨 Visual Analytics**: Highlight selected regions with yellow cell overlays
+
+### Technical Infrastructure
 - **🌐 REST API**: FastAPI-powered backend for easy integration
-- **⚡ Fast Processing**: Python-powered backend with efficient algorithms
-- **💾 Data Export**: Download results in CSV and PNG formats
+- **⚡ Fast Processing**: Efficient classical and quantum algorithm implementations
+- **💾 Complete Pipeline**: Preprocessing → Optimization → Postprocessing in one call
+- **📈 Scalability**: Handles grids from 4 to 400+ nodes
 
 ## 🏗️ Project Structure
 
@@ -32,10 +52,14 @@ q-forest/
 ├── postprocessing/       # Node highlighting
 │   ├── highlight_nodes.py
 │   └── example_selection.csv
-├── classic/             # Classical optimization
-│   ├── classic_solver.py
+├── classic/             # Quantum-inspired classical SDP solver
+│   ├── classic_solver.py  # Semidefinite programming with quantum relaxation
+│   ├── ALGORITHM_DETAILS.md
 │   └── README.md
-├── quantum-knapsack/    # Quantum optimization
+├── quantum-knapsack/    # Quantum QAOA optimization (LinQAOA, QuadQAOA, QWQAOA)
+│   ├── knapsack.py      # Core QAOA implementation
+│   ├── circuits.py      # Quantum circuit construction
+│   └── README.md        # Complete quantum documentation
 └── frontend/            # Web UI (not yet implemented)
 ```
 
@@ -201,12 +225,21 @@ The API is ready to accept requests from any frontend application!
 5. **Graph Creation**: Builds a NetworkX graph with adjacency information
 6. **Visualization**: Overlays the graph on the original image
 
-### Optimization (Classic Solver)
-1. **SDP Formulation**: Uses semidefinite programming via CVXPY
-2. **Objective**: Maximize total benefit subject to budget constraint
-3. **Solution**: Returns continuous values (0-1) for each node
-4. **Rounding**: Converts to binary (0/1) using 0.5 threshold
-5. **Non-binary Detection**: Identifies fractional values for analysis
+### Optimization (Quantum-Assisted Classical Solver)
+1. **Quantum-Inspired SDP**: Uses semidefinite programming with quantum relaxation techniques
+2. **Convex Relaxation**: Lifts integer problem to continuous space (quantum superposition analog)
+3. **Objective**: Maximize total benefit subject to budget constraint
+4. **Solution**: Returns continuous values [0,1] representing quantum-like probability amplitudes
+5. **Measurement**: Converts to binary (0/1) using 0.5 threshold (quantum measurement analog)
+6. **Superposition Analysis**: Identifies fractional values (nodes in "quantum superposition")
+
+### Alternative: Pure Quantum Optimization (QAOA)
+For problems where quantum advantage is desired:
+- **LinQAOA**: Linear approximation QAOA for fast quantum solutions
+- **QuadQAOA**: Quadratic approximation for better solution quality
+- **QWQAOA**: Quantum Walk QAOA for enhanced exploration
+
+See `quantum-knapsack/README.md` for detailed quantum algorithm documentation.
 
 ### Postprocessing
 1. **Node Highlighting**: Overlays yellow cells on selected nodes
@@ -239,13 +272,19 @@ After highlighting selected nodes:
 
 ## 🛠️ Technology Stack
 
-- **FastAPI** - Python web framework
-- **Uvicorn** - ASGI server
-- **NumPy** - Numerical computing
-- **OpenCV** - Image processing
-- **NetworkX** - Graph algorithms
-- **Matplotlib** - Visualization
-- **Pillow** - Image handling
+### Quantum & Optimization
+- **CVXPY** - Convex optimization for quantum-inspired SDP
+- **Qiskit** - IBM's quantum computing SDK for QAOA algorithms
+- **CLARABEL** - High-performance SDP solver
+- **NumPy/SciPy** - Numerical computing and sparse matrices
+
+### Classical Infrastructure
+- **FastAPI** - High-performance Python web framework
+- **Uvicorn** - ASGI server for async processing
+- **NetworkX** - Graph algorithms and network analysis
+- **OpenCV** - Computer vision and image processing
+- **Matplotlib** - Scientific visualization
+- **Pillow** - Image handling and manipulation
 
 ## 🔧 API Endpoints
 
@@ -364,11 +403,25 @@ curl "http://localhost:8000/results/$VIZ_JOB_ID/${VIZ_JOB_ID}_9nodes_highlighted
 ```
 
 ### Application Domains:
-- **Forest Management**: Identify optimal locations for conservation efforts
-- **Urban Planning**: Analyze resource distribution in city planning
-- **Environmental Studies**: Map ecological hotspots
-- **Optimization Research**: Generate input data for quantum/classical algorithms
-- **Resource Allocation**: Visualize and compare different solution strategies
+
+#### Forestry & Environmental Conservation
+- **🌲 Forest Management**: Identify optimal locations for reforestation and conservation efforts
+- **🦋 Biodiversity Preservation**: Maximize ecological benefit within budget constraints
+- **🔥 Fire Prevention**: Optimize placement of firebreak zones and monitoring stations
+- **💧 Watershed Protection**: Strategic resource allocation for water conservation
+- **🌱 Habitat Restoration**: Select priority areas for ecosystem restoration
+
+#### Quantum Computing Research
+- **⚛️ Quantum Algorithm Testing**: Benchmark classical vs. quantum optimization approaches
+- **🔬 QAOA Development**: Test and compare LinQAOA, QuadQAOA, and QWQAOA variants
+- **📊 Hybrid Methods**: Develop quantum-classical hybrid optimization strategies
+- **🎯 Combinatorial Optimization**: Research quantum advantage in real-world problems
+
+#### Urban & Regional Planning
+- **🏙️ Urban Planning**: Analyze resource distribution in city planning
+- **🚨 Emergency Response**: Optimize emergency service station placement
+- **📡 Infrastructure**: Strategic placement of communication towers or utilities
+- **🌍 Environmental Studies**: Map and prioritize ecological hotspots
 
 ## 🔒 Security Considerations
 
@@ -440,22 +493,31 @@ Q-FOREST: Quantum-inspired Forest Optimization & Resource Evaluation System
 
 ## 🆕 Recent Updates
 
-### Version 1.1.0 (October 2025)
+### Version 1.2.0 (October 2025) - Quantum-Classical Integration
+
+**⚛️ Quantum Features:**
+- 🌌 **Quantum-Assisted SDP**: Classical solver now uses quantum-inspired semidefinite relaxation
+- 🔬 **Superposition Analysis**: Identifies fractional solutions analogous to quantum superposition
+- ⚡ **Full Pipeline Endpoint**: One-call preprocessing → quantum/classical optimization → postprocessing
+- 📚 **Quantum Documentation**: Complete QAOA algorithm documentation and comparison
 
 **✨ New Features:**
 - 🎨 **Postprocessing Module**: Highlight selected nodes on visualizations
 - 🟨 **Yellow Cell Overlay**: Transparent highlighting of entire grid cells
-- 📊 **Enhanced API**: New `/highlight` endpoint for result visualization
+- 📊 **Enhanced API**: New `/optimize/full-pipeline` endpoint
+- 🔢 **Non-Binary Detection**: Identify and analyze fractional solution values
 
 **🔧 Improvements:**
-- 💰 **Cost Range Updated**: Changed from 0-1 to 30-100 for realistic optimization
-- 🎨 **Cleaner Visualizations**: Removed colorbar from preprocessing output
-- 📈 **Better Grid Lines**: Enhanced visibility with 50% opacity
+- 💰 **Column-Based Costs**: Spatial cost gradient (30, 45, 60, 75, 90, 105...)
+- 🎯 **3-Decimal Precision**: Truncation without rounding for accurate solutions
+- 🎨 **Cleaner Visualizations**: Enhanced grid lines and checkmarks
+- 📈 **Better Statistics**: Complete metrics from all three pipeline stages
 
 **📊 Tested Configurations:**
 - ✅ Small grids: 9 nodes (3×3)
-- ✅ Medium grids: 64 nodes (8×8)
+- ✅ Medium grids: 49 nodes (7×7)
 - ✅ Large grids: 400 nodes (20×20)
+- ✅ Quantum algorithms: LinQAOA, QuadQAOA, QWQAOA
 
 ---
 
