@@ -8,7 +8,9 @@ This module provides classical optimization algorithms to solve knapsack-style p
 - Maximize benefits while respecting budget constraints
 - Uses CVXPY for convex optimization
 - Semidefinite programming (SDP) formulation
-- Returns binary selection matrix (0/1)
+- Returns solution matrix with values [0, 1]
+- Identifies non-binary (fractional) positions for analysis
+- Applies 3-decimal precision truncation to solution values
 
 ## 🚀 Quick Start
 
