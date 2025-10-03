@@ -9,6 +9,7 @@ from PIL import Image
 from pathlib import Path
 from typing import Tuple, Optional
 import sys
+import os
 
 # Add preprocessing to path to reuse HeatmapToGraph
 sys.path.append(str(Path(__file__).parent.parent / "preprocessing"))
@@ -177,7 +178,9 @@ class NodeHighlighter:
         ax.legend(handles=legend_elements, loc='upper right', fontsize=10)
         
         plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        tmp_path = os.path.join("..", "frontend", "public", "graph.png")
+    
+        plt.savefig(tmp_path, dpi=300, bbox_inches="tight")
         plt.close()
         
         print(f"Highlighted visualization saved to: {output_path}")

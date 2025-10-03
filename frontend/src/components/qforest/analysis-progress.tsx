@@ -42,10 +42,11 @@ export function AnalysisProgress({ file, onAnalysisComplete }: AnalysisProgressP
     const sendImage = async () => {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("nodes", "9"); // fijo: 9 nodos
+      formData.append("nodes", "36");
+      formData.append("budget", "200");
 
       try {
-        const res = await fetch("http://localhost:8000/process", {
+        const res = await fetch("http://localhost:8000/optimize/full-pipeline", {
           method: "POST",
           body: formData,
         });
