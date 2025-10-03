@@ -7,7 +7,44 @@ knapsack-style problems with benefits and costs matrices.
 
 import cvxpy as cp
 import numpy as np
-from typing import Dict
+import pandas as pd
+from typing import Dict, List
+
+
+def lineJump():
+    """Print a separator line"""
+    print("-" * 50)
+
+
+def trunc(value, decimals=3):
+    """Truncate a value to a specific number of decimals"""
+    factor = 10 ** decimals
+    return np.trunc(value * factor) / factor
+
+
+def calculateNonBinaryPositions(matrix, weightCostMatrix, benefitMatrix):
+    """
+    Calculate positions with non-binary values (values between 0 and 1)
+    
+    Args:
+        matrix: Solution matrix with values between 0 and 1
+        weightCostMatrix: Cost matrix
+        benefitMatrix: Benefit matrix
+    
+    Returns:
+        List of dictionaries with position info and associated values
+    """
+    return [
+        {
+            "value": float(value),
+            "pos": (i, j),
+            "alpha_value": float(benefitMatrix[i, j]),
+            "weight_value": float(weightCostMatrix[i, j])
+        }
+        for i, row in enumerate(matrix)
+        for j, value in enumerate(row)
+        if (value > 0.0001 and value < 0.99)
+    ]
 
 
 class ClassicSolver:
@@ -41,13 +78,16 @@ class ClassicSolver:
             
         Returns:
             Dictionary containing:
-                - solution_matrix: Binary matrix (0/1) indicating selected nodes
-                - selected_vector: Flattened binary vector
+                - solution_matrix: Matrix with values [0, 1] indicating selection
+                - selected_vector: Flattened vector
                 - objective_value: Optimal objective function value
                 - status: Solver status
                 - selected_count: Number of selected nodes
                 - total_benefit: Total benefit of selected nodes
                 - total_cost: Total cost of selected nodes
+                - budget: Budget constraint
+                - budget_utilization: Percentage of budget used
+                - non_binary_positions: List of fractional (non-binary) positions
         """
         # Validate inputs
         if benefits.shape != costs.shape:
@@ -59,48 +99,54 @@ class ClassicSolver:
             raise TypeError("Benefits and costs must be numpy arrays")
             
         # Flatten matrices to vectors
-        alphaList = benefits.flatten()
-        weightCostList = costs.flatten()
+        alpha_list = benefits.flatten()
+        cost_list = costs.flatten()
         
-        n_nodes = len(alphaList)
+        # Get number of nodes plus 1 for the semidefinite matrix
+        n_nodes_plus_1 = len(alpha_list) + 1
         
-        # Create optimization variables (SDP formulation)
-        variables = cp.Variable((n_nodes + 1, n_nodes + 1), symmetric=True)
+        # Define optimization variables (semidefinite programming)
+        # Create a symmetric matrix variable
+        variables = cp.Variable((n_nodes_plus_1, n_nodes_plus_1), symmetric=True)
         
         # Objective: Maximize total benefit
+        # Using the formulation: maximize sum of 0.5 * (1 + X_0i) * benefit_i
         objective = cp.Maximize(
-            sum((.5 * (1 + variables[0, i]) * alphaList[i - 1] 
-                 for i in range(1, n_nodes + 1)))
+            sum(0.5 * (1 + variables[0, i]) * alpha_list[i - 1] 
+                for i in range(1, n_nodes_plus_1))
         )
         
         # Constraints
-        # 1. Budget constraint: total cost <= budget
-        constraint = [
-            sum((.5 * (1 + variables[0, i]) * weightCostList[i - 1] 
-                 for i in range(1, n_nodes + 1))) <= budget
-        ]
+        constraints = []
         
-        # 2. Positive semidefinite constraint
-        constraint += [variables >> 0]
+        # Budget constraint: sum of 0.5 * (1 + X_0i) * cost_i <= budget
+        constraints.append(
+            sum(0.5 * (1 + variables[0, i]) * cost_list[i - 1] 
+                for i in range(1, n_nodes_plus_1)) <= budget
+        )
         
-        # 3. Diagonal elements must be 1
-        for i in range(n_nodes + 1):
-            constraint += [variables[i, i] == 1]
+        # Semidefinite constraint: X >= 0 (positive semidefinite)
+        constraints.append(variables >> 0)
+        
+        # Diagonal elements equal to 1
+        for i in range(n_nodes_plus_1):
+            constraints.append(variables[i, i] == 1)
         
         # Solve the problem
-        problem = cp.Problem(objective, constraint)
+        problem = cp.Problem(objective, constraints)
         result = problem.solve()
         
-        # Extract solution
+        # Extract solution - remove first element (index 0)
         variablesArray = np.delete(np.array(variables.value[0]), 0)
         selected_vector = variablesArray
         
-        # Reshape to original matrix shape
+        # Reshape solution to matrix form
         unNormalizedSolutionMatrix = selected_vector.reshape(benefits.shape)
         
-        # Normalize to binary 0/1 (rounding)
+        # Normalize solution matrix to [0, 1] range and apply truncation
+        # Transform from [-1, 1] to [0, 1] with 3 decimal precision
         normalizedSolutionMatrix = np.array([
-            [np.round((element + 1) / 2, 5) for element in line] 
+            [float(trunc((element + 1) / 2, 3)) for element in line]
             for line in unNormalizedSolutionMatrix
         ])
         
@@ -110,22 +156,42 @@ class ClassicSolver:
         self.selected_vector = selected_vector
         self.solution_matrix = normalizedSolutionMatrix
         
+        # Calculate non-binary positions
+        not_binary_positions = calculateNonBinaryPositions(
+            normalizedSolutionMatrix, costs, benefits
+        )
+        
         # Calculate statistics
-        binary_matrix = (normalizedSolutionMatrix > 0.5).astype(int)
-        selected_count = int(np.sum(binary_matrix))
-        total_benefit = float(np.sum(benefits * binary_matrix))
-        total_cost = float(np.sum(costs * binary_matrix))
+        selected_count = int(np.sum(normalizedSolutionMatrix > 0.5))
+        total_benefit = float(np.sum(normalizedSolutionMatrix * benefits))
+        total_cost = float(np.sum(normalizedSolutionMatrix * costs))
         
         if verbose:
+            lineJump()
+            print("CLASSIC SOLVER RESULTS")
+            lineJump()
             print(f"Problem status: {problem.status}")
             print(f"Optimal Solution: {result:.2f}")
-            print(f"Variables (vector): {selected_vector}")
-            print("Solution Matrix (0/1):")
+            lineJump()
+            
+            if not_binary_positions:
+                print("Non-binary positions (fractional values):")
+                for item in not_binary_positions:
+                    print(f"  Position {item['pos']}: value={item['value']:.3f}, "
+                          f"benefit={item['alpha_value']:.3f}, cost={item['weight_value']:.2f}")
+                lineJump()
+            
+            print(f"Variables (vector): {[float(v) for v in selected_vector]}")
+            lineJump()
+            print("Solution Matrix:")
             print(normalizedSolutionMatrix)
-            print("\nStatistics:")
-            print(f"  Selected nodes: {selected_count}/{n_nodes}")
-            print(f"  Total benefit: {total_benefit:.4f}")
-            print(f"  Total cost: {total_cost:.2f} (budget: {budget})")
+            lineJump()
+            print(f"Selected nodes: {selected_count}")
+            print(f"Total benefit: {total_benefit:.4f}")
+            print(f"Total cost: {total_cost:.2f}")
+            print(f"Budget: {budget:.2f}")
+            print(f"Budget utilization: {(total_cost/budget)*100:.2f}%")
+            lineJump()
         
         return {
             "solution_matrix": normalizedSolutionMatrix,
@@ -136,7 +202,8 @@ class ClassicSolver:
             "total_benefit": total_benefit,
             "total_cost": total_cost,
             "budget": budget,
-            "budget_utilization": (total_cost / budget * 100) if budget > 0 else 0
+            "budget_utilization": (total_cost / budget) * 100 if budget > 0 else 0,
+            "non_binary_positions": not_binary_positions
         }
     
     def solve_from_files(
@@ -158,8 +225,6 @@ class ClassicSolver:
         Returns:
             Dictionary with solution and statistics (same as solve())
         """
-        import pandas as pd
-        
         # Load matrices from CSV files
         benefits = pd.read_csv(benefits_csv_path, header=None).values
         costs = pd.read_csv(costs_csv_path, header=None).values
@@ -195,13 +260,13 @@ if __name__ == "__main__":
     import sys
     from pathlib import Path
     
-    # Example with default test files
-    benefits_path = "../preprocessing/data/map2_9nodes_benefits_normalized_matrix.csv"
-    costs_path = "../preprocessing/data/map2_9nodes_costs_matrix.csv"
+    # Example with 36 nodes
+    benefits_path = "../preprocessing/data/map2_36nodes_benefits_normalized_matrix.csv"
+    costs_path = "../preprocessing/data/map2_36nodes_costs_matrix.csv"
     
-    print("=" * 60)
+    lineJump()
     print("Q-FOREST Classic Solver - Example Usage")
-    print("=" * 60)
+    lineJump()
     print()
     
     # Check if files exist
@@ -222,13 +287,13 @@ if __name__ == "__main__":
     result = solver.solve_from_files(
         benefits_csv_path=benefits_path,
         costs_csv_path=costs_path,
-        budget=2.0,
+        budget=400.0,
         verbose=True
     )
     
-    print("\n" + "=" * 60)
+    lineJump()
     print("Solution Summary:")
-    print("=" * 60)
+    lineJump()
     print(f"Status: {result['status']}")
     print(f"Objective Value: {result['objective_value']:.4f}")
     print(f"Selected Nodes: {result['selected_count']}")
@@ -236,6 +301,5 @@ if __name__ == "__main__":
     print(f"Total Cost: {result['total_cost']:.2f}")
     print(f"Budget: {result['budget']:.2f}")
     print(f"Budget Utilization: {result['budget_utilization']:.2f}%")
-    print()
-    print("Solution Matrix:")
-    print(result['solution_matrix'])
+    print(f"Non-binary positions: {len(result['non_binary_positions'])}")
+    lineJump()
